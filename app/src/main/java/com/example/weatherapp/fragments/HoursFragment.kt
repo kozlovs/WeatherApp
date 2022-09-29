@@ -32,7 +32,7 @@ class HoursFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        initRV()
+        init()
         updateCurrentCard()
     }
 
@@ -42,7 +42,7 @@ class HoursFragment : Fragment() {
         }
     }
 
-    private fun initRV() = with(binding) {
+    private fun init() = with(binding) {
         rcView.layoutManager = LinearLayoutManager(activity)
         adapter = WeatherAdapter()
         rcView.adapter = adapter
