@@ -2,6 +2,7 @@ package com.example.weatherapp.fragments
 
 import android.Manifest
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,10 +11,17 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import com.android.volley.Request
+import com.android.volley.toolbox.StringRequest
+import com.android.volley.toolbox.Volley
 import com.example.weatherapp.adapters.VpAdapter
+import com.example.weatherapp.adapters.WeatherModel
 import com.example.weatherapp.databinding.FragmentMainBinding
 import com.example.weatherapp.isPermissionGranted
 import com.google.android.material.tabs.TabLayoutMediator
+import org.json.JSONObject
+
+const val API_KEY = "f6851a729736467aa33123131222409"
 
 class MainFragment : Fragment() {
     private val fList = listOf(
@@ -36,20 +44,15 @@ class MainFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         checkPermission()
         init()
+        //requestWeatherData("London")
     }
 
     private fun init() = with(binding) {
         val adapter = VpAdapter(activity as FragmentActivity, fList)
         vp.adapter = adapter
-        TabLayoutMediator(tabLayout, vp) {
-                tab, pos -> tab.text = tList[pos]
+        TabLayoutMediator(tabLayout, vp) { tab, pos ->
+            tab.text = tList[pos]
         }.attach()
-    }
-
-    private fun permissionListener(){
-        pLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
-            Toast.makeText(activity, "Permission is $it", Toast.LENGTH_LONG).show()
-        }
     }
 
     private fun checkPermission() {
@@ -57,6 +60,50 @@ class MainFragment : Fragment() {
             permissionListener()
             pLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         }
+    }
+
+    private fun permissionListener() {
+        pLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+            Toast.makeText(activity, "Permission is $it", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun requestWeatherData(cityName: String) {
+        val url = "https://api.weatherapi.com/v1/current.json?" +
+                "key=$API_KEY" +
+                "&q=$cityName" +
+                "&days=3" +
+                "&aqi=no" +
+                "&alerts=no"
+        val queue = Volley.newRequestQueue(context)
+        val stringRequest = StringRequest(
+            Request.Method.GET,
+            url,
+            { result -> parseWeatherData(result)
+            },
+            { error ->
+                Log.d("MyLog", "Error: $error")
+            }
+        )
+        queue.add(stringRequest)
+    }
+
+    private fun parseWeatherData(result: String): WeatherModel {
+        val mainObject = JSONObject(result)
+        val item = WeatherModel(
+            mainObject.getJSONObject("location").getString("name"),
+            mainObject.getJSONObject("current").getString("last_updated"),
+            mainObject.getJSONObject("current")
+                .getJSONObject("condition").getString("text"),
+            mainObject.getJSONObject("current")
+                .getJSONObject("condition").getString("icon"),
+            mainObject.getJSONObject("current").getString("temp_c"),
+            "",
+            "",
+            ""
+        )
+        Log.d("MyLog", "${item.toString()}")
+        return item
     }
 
     companion object {
