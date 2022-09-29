@@ -98,10 +98,10 @@ class MainFragment : Fragment() {
             val minMaxTemp = "${it.minTemp}C / ${it.maxTemp}C"
             tvTime.text = it.time
             tvCity.text = it.city
-            tvCurrentTemp.text = it.currentTemp
+            tvCurrentTemp.text = it.currentTemp + "C"
             tvCondition.text = it.condition
             tvMaxMin.text = minMaxTemp
-            Picasso.get().load(it.imageUrl).into(imWeather)
+            Picasso.get().load("https:${it.imageUrl}").into(imWeather)
         }
     }
 
