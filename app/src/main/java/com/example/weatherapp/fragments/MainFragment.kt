@@ -44,7 +44,7 @@ class MainFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         checkPermission()
         init()
-        //requestWeatherData("London")
+        requestWeatherData("London")
     }
 
     private fun init() = with(binding) {
@@ -88,8 +88,13 @@ class MainFragment : Fragment() {
         queue.add(stringRequest)
     }
 
-    private fun parseWeatherData(result: String): WeatherModel {
+    private fun parseWeatherData(result: String) {
         val mainObject = JSONObject(result)
+        val list = parseDays(mainObject)
+        parseCurrentData(mainObject, list[0])
+    }
+
+    private fun parseCurrentData(mainObject: JSONObject, weatherItem: WeatherModel): WeatherModel {
         val item = WeatherModel(
             mainObject.getJSONObject("location").getString("name"),
             mainObject.getJSONObject("current").getString("last_updated"),
@@ -98,12 +103,34 @@ class MainFragment : Fragment() {
             mainObject.getJSONObject("current")
                 .getJSONObject("condition").getString("icon"),
             mainObject.getJSONObject("current").getString("temp_c"),
-            "",
-            "",
-            ""
+            weatherItem.maxTemp,
+            weatherItem.minTemp,
+            weatherItem.hours
         )
-        Log.d("MyLog", "${item.toString()}")
         return item
+    }
+
+    private fun parseDays(mainObject: JSONObject) : List<WeatherModel> {
+        val list = ArrayList<WeatherModel>()
+        val daysArray = mainObject
+            .getJSONObject("forecast")
+            .getJSONArray("forecastday")
+        val name = mainObject.getJSONObject("location").getString("name")
+        for (i in 0 until daysArray.length()) {
+            val day = daysArray[i] as JSONObject
+            val item = WeatherModel(
+                name,
+                day.getString("date"),
+                day.getJSONObject("day").getJSONObject("condition").getString("text"),
+                day.getJSONObject("day").getJSONObject("condition").getString("icon"),
+                "",
+                day.getJSONObject("day").getString("maxtemp_c"),
+                day.getJSONObject("day").getString("mintemp_c"),
+                day.getJSONArray("hour").toString()
+            )
+            list += item
+        }
+        return list
     }
 
     companion object {
