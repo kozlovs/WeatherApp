@@ -8,10 +8,11 @@ import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.weatherapp.adapters.WeatherAdapter
+import com.example.weatherapp.adapters.WeatherModel
 import com.example.weatherapp.databinding.FragmentDaysBinding
 import com.example.weatherapp.viewmodel.MainViewModel
 
-class DaysFragment : Fragment() {
+class DaysFragment : Fragment(), WeatherAdapter.Listener {
     private lateinit var binding: FragmentDaysBinding
     private lateinit var adapter: WeatherAdapter
     private val viewModel: MainViewModel by activityViewModels()
@@ -27,10 +28,10 @@ class DaysFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         init()
-        updateCurrentCard()
+        updateCard()
     }
 
-    private fun updateCurrentCard() {
+    private fun updateCard() {
         viewModel.liveDataList.observe(viewLifecycleOwner) {
             adapter.submitList(it.subList(1, it.size))
         }
@@ -38,8 +39,12 @@ class DaysFragment : Fragment() {
 
     private fun init() = with(binding) {
         rcView.layoutManager = LinearLayoutManager(activity)
-        adapter = WeatherAdapter()
+        adapter = WeatherAdapter(this@DaysFragment)
         rcView.adapter = adapter
+    }
+
+    override fun onClick(item: WeatherModel) {
+        viewModel.liveDataCurrent.value = item
     }
 
     companion object {
